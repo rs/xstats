@@ -18,6 +18,6 @@ func TestHandler(t *testing.T) {
 		assert.Equal(t, c, rc.c)
 		assert.Equal(t, []string{"envtag"}, rc.tags)
 	})
-	h := NewHandler(c, n, []string{"envtag"})
+	h := NewHandler(c, []string{"envtag"}, n)
 	h.ServeHTTP(context.Background(), nil, nil)
 }

@@ -42,7 +42,7 @@ func FromContext(ctx context.Context) RequestClient {
 
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
-func NewHandler(c Client, next xhandler.Handler, tags []string) *Handler {
+func NewHandler(c Client, tags []string, next xhandler.Handler) *Handler {
 	return &Handler{
 		c:    c,
 		tags: tags,

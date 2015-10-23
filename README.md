@@ -58,7 +58,7 @@ statsdWriter, err := net.Dial("udp", "127.0.0.1:8126")
 if err != nil {
     log.Fatal(err)
 }
-xh := xmetric.NewHandler(statsd.New(statsdWriter, flushInterval), tags)
+xh := xmetric.NewHandler(statsd.New(statsdWriter, flushInterval), tags, xh)
 
 // Root context
 var h http.Handler
