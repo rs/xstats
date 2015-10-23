@@ -1,4 +1,20 @@
-// Package xstats provides a generic client to log metrics from go web services.
+// Package xstats is a generic client for service instrumentation.
+//
+// xstats is inspired from Go-kit's metrics (https://github.com/go-kit/kit/tree/master/metrics)
+// package but it takes a slightly different path. Instead of having to create
+// an instance for each metric, xstats use a single instance to log every metrics
+// you want. This reduces the boiler plate when you have a lot a metrics in your app.
+// It's also easier in term of dependency injection.
+//
+// Talking about dependency injection, xstats comes with a xhandler.Handler
+// integration so it can automatically inject the xstats client within the net/context
+// of each request. Each request's xstats instance have its own tags storage ;
+// This let you inject some per request contextual tags to be included with all
+// observations sent within the lifespan of the request.
+//
+// xstats is pluggable and comes with integration for StatsD and DogStatsD,
+// the Datadog (http://datadoghq.com) augmented version of StatsD with support for tags.
+// More integration may come later (PR welcome).
 package xstats // import "github.com/rs/xstats"
 
 import "time"
