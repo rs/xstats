@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +14,12 @@ import (
 
 var tickC = make(chan time.Time)
 var fakeTick = func(time.Duration) <-chan time.Time { return tickC }
+
+func yield() {
+	runtime.Gosched()
+	tickC <- time.Now()
+	runtime.Gosched()
+}
 
 func TestCounter(t *testing.T) {
 	tick = fakeTick
@@ -25,8 +30,7 @@ func TestCounter(t *testing.T) {
 
 	c.Count("metric1", 1, "tag1")
 	c.Count("metric2", 2, "tag1", "tag2")
-	tickC <- time.Now()
-	runtime.Gosched()
+	yield()
 
 	assert.Equal(t, "metric1:1.000000|c\nmetric2:2.000000|c\n", buf.String())
 }
@@ -40,8 +44,7 @@ func TestGauge(t *testing.T) {
 
 	c.Gauge("metric1", 1, "tag1")
 	c.Gauge("metric2", -2.0, "tag1", "tag2")
-	tickC <- time.Now()
-	runtime.Gosched()
+	yield()
 
 	assert.Equal(t, "metric1:1.000000|g\nmetric2:-2.000000|g\n", buf.String())
 }
@@ -55,8 +58,7 @@ func TestHistogram(t *testing.T) {
 
 	c.Histogram("metric1", 1, "tag1")
 	c.Histogram("metric2", 2, "tag1", "tag2")
-	tickC <- time.Now()
-	runtime.Gosched()
+	yield()
 
 	assert.Equal(t, "metric1:1.000000|h\nmetric2:2.000000|h\n", buf.String())
 }
@@ -70,8 +72,7 @@ func TestTiming(t *testing.T) {
 
 	c.Timing("metric1", time.Second, "tag1")
 	c.Timing("metric2", 2*time.Second, "tag1", "tag2")
-	tickC <- time.Now()
-	runtime.Gosched()
+	yield()
 
 	assert.Equal(t, "metric1:1.000000|ms\nmetric2:2.000000|ms\n", buf.String())
 }
@@ -93,8 +94,7 @@ func TestInvalidBuffer(t *testing.T) {
 	c := New(&errWriter{}, time.Second)
 
 	c.Count("metric", 1)
-	tickC <- time.Now()
-	runtime.Gosched()
+	yield()
 
-	assert.True(t, strings.HasSuffix(buf.String(), "error: could not write to statsd: i/o error\n"))
+	assert.Contains(t, buf.String(), "error: could not write to statsd: i/o error")
 }
