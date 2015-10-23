@@ -1,4 +1,4 @@
-package xmetrics
+package xstats
 
 import "time"
 

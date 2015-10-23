@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xmetrics"
+	"github.com/rs/xstats"
 )
 
 // Inspired by https://github.com/streadway/handy statsd package
@@ -25,28 +25,28 @@ var tick = time.Tick
 // protocol to the passed writer. Observations are buffered for the report
 // interval or until the buffer exceeds a max packet size, whichever comes
 // first.
-func New(w io.Writer, reportInterval time.Duration) xmetrics.Client {
+func New(w io.Writer, reportInterval time.Duration) xstats.Client {
 	c := make(chan string)
 	go fwd(w, reportInterval, c)
 	return client(c)
 }
 
-// Gauge implements xmetrics.Client interface
+// Gauge implements xstats.Client interface
 func (c client) Gauge(stat string, value float64, tags ...string) {
 	c <- fmt.Sprintf("%s:%f|g%s\n", stat, value, t(tags))
 }
 
-// Count implements xmetrics.Client interface
+// Count implements xstats.Client interface
 func (c client) Count(stat string, count float64, tags ...string) {
 	c <- fmt.Sprintf("%s:%f|c%s\n", stat, count, t(tags))
 }
 
-// Histogram implements xmetrics.Client interface
+// Histogram implements xstats.Client interface
 func (c client) Histogram(stat string, value float64, tags ...string) {
 	c <- fmt.Sprintf("%s:%f|h%s\n", stat, value, t(tags))
 }
 
-// Timing implements xmetrics.Client interface
+// Timing implements xstats.Client interface
 func (c client) Timing(stat string, duration time.Duration, tags ...string) {
 	c <- fmt.Sprintf("%s:%f|ms%s\n", stat, duration.Seconds(), t(tags))
 }

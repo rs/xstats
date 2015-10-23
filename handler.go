@@ -1,4 +1,4 @@
-package xmetrics
+package xstats
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 )
 
 // Handler injects a per request metrics client in the net/context which can be
-// retrived using xmetrics.FromContext(ctx)
+// retrived using xstats.FromContext(ctx)
 type Handler struct {
 	c    Client
 	tags []string

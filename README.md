@@ -1,6 +1,6 @@
 # HTTP Handler Metrics
 
-[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/xmetrics) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/xmetrics/master/LICENSE) [![Build Status](https://travis-ci.org/rs/xmetrics.svg?branch=master)](https://travis-ci.org/rs/xmetrics)
+[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/xstats) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/xstats/master/LICENSE) [![Build Status](https://travis-ci.org/rs/xstats.svg?branch=master)](https://travis-ci.org/rs/xstats)
 
 xmetric is a generic client for service instrumentation.
 
@@ -73,4 +73,4 @@ if err := http.ListenAndServe(":8080", nil); err != nil {
 
 ## Licenses
 
-All source code is licensed under the [MIT License](https://raw.github.com/rs/xmetrics/master/LICENSE).
+All source code is licensed under the [MIT License](https://raw.github.com/rs/xstats/master/LICENSE).

@@ -1,5 +1,5 @@
-// Package xmetrics provides a generic client to log metrics from go web services.
-package xmetrics // import "github.com/rs/xmetrics"
+// Package xstats provides a generic client to log metrics from go web services.
+package xstats // import "github.com/rs/xstats"
 
 import "time"
 
