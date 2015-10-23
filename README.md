@@ -1,4 +1,4 @@
-# HTTP Handler Metrics
+# XStats
 
 [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/xstats) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/xstats/master/LICENSE) [![Build Status](https://travis-ci.org/rs/xstats.svg?branch=master)](https://travis-ci.org/rs/xstats)
 
