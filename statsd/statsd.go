@@ -20,11 +20,11 @@ const maxPacketLen = 2 ^ 15
 
 var tick = time.Tick
 
-// New creates a statsd client that emit observations in the statsd
+// New creates a statsd sender that emit observations in the statsd
 // protocol to the passed writer. Observations are buffered for the report
 // interval or until the buffer exceeds a max packet size, whichever comes
 // first. Tags are ignored.
-func New(w io.Writer, reportInterval time.Duration) xstats.Client {
+func New(w io.Writer, reportInterval time.Duration) xstats.Sender {
 	c := make(chan string)
 	go fwd(w, reportInterval, c)
 	return client(c)

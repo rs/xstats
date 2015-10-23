@@ -10,14 +10,13 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	c := &fakeClient{}
+	s := &fakeSender{}
 	n := xhandler.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		s := FromContext(ctx)
-		rc, ok := s.(*requestClient)
+		xs, ok := FromContext(ctx).(*xstats)
 		assert.True(t, ok)
-		assert.Equal(t, c, rc.c)
-		assert.Equal(t, []string{"envtag"}, rc.tags)
+		assert.Equal(t, s, xs.s)
+		assert.Equal(t, []string{"envtag"}, xs.tags)
 	})
-	h := NewHandler(c, []string{"envtag"}, n)
+	h := NewHandler(s, []string{"envtag"}, n)
 	h.ServeHTTP(context.Background(), nil, nil)
 }

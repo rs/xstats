@@ -11,40 +11,40 @@ import (
 // Handler injects a per request metrics client in the net/context which can be
 // retrived using xstats.FromContext(ctx)
 type Handler struct {
-	c    Client
+	s    Sender
 	tags []string
 	next xhandler.Handler
 }
 
 type key int
 
-const requestClientKey key = 0
+const xstatsKey key = 0
 
-var requestClientPool = sync.Pool{
+var xstatsPool = sync.Pool{
 	New: func() interface{} {
-		return &requestClient{}
+		return &xstats{}
 	},
 }
 
 // newContext returns a context with the given stats request client stored as value.
-func newContext(ctx context.Context, rc RequestClient) context.Context {
-	return context.WithValue(ctx, requestClientKey, rc)
+func newContext(ctx context.Context, xs *xstats) context.Context {
+	return context.WithValue(ctx, xstatsKey, xs)
 }
 
 // FromContext retreives the request client from a given context if any.
-func FromContext(ctx context.Context) RequestClient {
-	rc, ok := ctx.Value(requestClientKey).(RequestClient)
+func FromContext(ctx context.Context) XStater {
+	rc, ok := ctx.Value(xstatsKey).(XStater)
 	if ok {
 		return rc
 	}
-	return nopClient
+	return nop
 }
 
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
-func NewHandler(c Client, tags []string, next xhandler.Handler) *Handler {
+func NewHandler(s Sender, tags []string, next xhandler.Handler) *Handler {
 	return &Handler{
-		c:    c,
+		s:    s,
 		tags: tags,
 		next: next,
 	}
@@ -52,12 +52,12 @@ func NewHandler(c Client, tags []string, next xhandler.Handler) *Handler {
 
 // Implements xhandler.Handler interface
 func (h *Handler) ServeHTTP(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	rc, _ := requestClientPool.Get().(*requestClient)
-	rc.c = h.c
-	rc.tags = append([]string{}, h.tags...)
-	ctx = newContext(ctx, rc)
+	xs, _ := xstatsPool.Get().(*xstats)
+	xs.s = h.s
+	xs.tags = append([]string{}, h.tags...)
+	ctx = newContext(ctx, xs)
 	h.next.ServeHTTP(ctx, w, r)
-	rc.tags = nil
-	rc.c = nil
-	requestClientPool.Put(rc)
+	xs.s = nil
+	xs.tags = nil
+	xstatsPool.Put(xs)
 }

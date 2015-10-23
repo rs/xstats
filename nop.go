@@ -2,27 +2,27 @@ package xstats
 
 import "time"
 
-type nopC struct {
+type nopS struct {
 }
 
-var nopClient = &nopC{}
+var nop = &nopS{}
 
-// AddTag implements RequestClient interface
-func (rc *nopC) AddTags(tags ...string) {
+// AddTag implements XStats interface
+func (rc *nopS) AddTags(tags ...string) {
 }
 
-// Gauge implements RequestClient interface
-func (rc *nopC) Gauge(stat string, value float64, tags ...string) {
+// Gauge implements XStats interface
+func (rc *nopS) Gauge(stat string, value float64, tags ...string) {
 }
 
-// Count implements RequestClient interface
-func (rc *nopC) Count(stat string, count float64, tags ...string) {
+// Count implements XStats interface
+func (rc *nopS) Count(stat string, count float64, tags ...string) {
 }
 
-// Histogram implements RequestClient interface
-func (rc *nopC) Histogram(stat string, value float64, tags ...string) {
+// Histogram implements XStats interface
+func (rc *nopS) Histogram(stat string, value float64, tags ...string) {
 }
 
-// Timing implements RequestClient interface
-func (rc *nopC) Timing(stat string, duration time.Duration, tags ...string) {
+// Timing implements xstats interface
+func (rc *nopS) Timing(stat string, duration time.Duration, tags ...string) {
 }
