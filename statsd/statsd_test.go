@@ -15,10 +15,13 @@ import (
 var tickC = make(chan time.Time)
 var fakeTick = func(time.Duration) <-chan time.Time { return tickC }
 
-func yield() {
+func wait(buf *bytes.Buffer) {
 	runtime.Gosched()
 	tickC <- time.Now()
 	runtime.Gosched()
+	for i := 0; i < 10 && buf.Len() == 0; i++ {
+		time.Sleep(10 * time.Millisecond)
+	}
 }
 
 func TestCounter(t *testing.T) {
@@ -30,7 +33,7 @@ func TestCounter(t *testing.T) {
 
 	c.Count("metric1", 1, "tag1")
 	c.Count("metric2", 2, "tag1", "tag2")
-	yield()
+	wait(buf)
 
 	assert.Equal(t, "metric1:1.000000|c\nmetric2:2.000000|c\n", buf.String())
 }
@@ -44,7 +47,7 @@ func TestGauge(t *testing.T) {
 
 	c.Gauge("metric1", 1, "tag1")
 	c.Gauge("metric2", -2.0, "tag1", "tag2")
-	yield()
+	wait(buf)
 
 	assert.Equal(t, "metric1:1.000000|g\nmetric2:-2.000000|g\n", buf.String())
 }
@@ -58,7 +61,7 @@ func TestHistogram(t *testing.T) {
 
 	c.Histogram("metric1", 1, "tag1")
 	c.Histogram("metric2", 2, "tag1", "tag2")
-	yield()
+	wait(buf)
 
 	assert.Equal(t, "metric1:1.000000|h\nmetric2:2.000000|h\n", buf.String())
 }
@@ -72,7 +75,7 @@ func TestTiming(t *testing.T) {
 
 	c.Timing("metric1", time.Second, "tag1")
 	c.Timing("metric2", 2*time.Second, "tag1", "tag2")
-	yield()
+	wait(buf)
 
 	assert.Equal(t, "metric1:1.000000|ms\nmetric2:2.000000|ms\n", buf.String())
 }
@@ -94,7 +97,7 @@ func TestInvalidBuffer(t *testing.T) {
 	c := New(&errWriter{}, time.Second)
 
 	c.Count("metric", 1)
-	yield()
+	wait(buf)
 
 	assert.Contains(t, buf.String(), "error: could not write to statsd: i/o error")
 }
