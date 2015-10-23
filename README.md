@@ -25,27 +25,27 @@ Talking about dependency injection, `xstats` comes with a [xhandler.Handler](htt
 // Defines interval between flushes to statsd server
 flushInterval := 5 * time.Second
 
-// Global tags sent with all metrics (only with supported clients like datadog's)
-tags := []string{"role:my-service"}
-
 // Connection to the statsd server
 statsdWriter, err := net.Dial("udp", "127.0.0.1:8126")
 if err != nil {
     log.Fatal(err)
 }
 
-// Create the metric client
-m := xstats.New(statsd.New(statsdWriter, flushInterval), tags)
+// Create the stats client
+s := xstats.New(dogstatsd.New(statsdWriter, flushInterval))
+
+// Global tags sent with all metrics (only with supported clients like datadog's)
+s.AddTags("role:my-service", "dc:sv6")
 
 // Send some observations
-m.Count("requests", 1, "tag")
-m.Timing("something", 5*time.Millisecond, "tag")
+s.Count("requests", 1, "tag")
+s.Timing("something", 5*time.Millisecond, "tag")
 ```
 
 Integration with [github.com/rs/xhandler](https://github.com/rs/xhandler):
 
 ```go
-var xh xhandler.CtxHandler
+var xh xhandler.Handler
 
 // Here is your handler
 xh = xhandler.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -65,12 +65,11 @@ statsdWriter, err := net.Dial("udp", "127.0.0.1:8126")
 if err != nil {
     log.Fatal(err)
 }
-xh := xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags, xh)
+xh = xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags, xh)
 
 // Root context
-var h http.Handler
 ctx := context.Background()
-h = xhandler.CtxHandler(ctx, lh)
+h := xhandler.CtxHandler(ctx, xh)
 http.Handle("/", h)
 
 if err := http.ListenAndServe(":8080", nil); err != nil {

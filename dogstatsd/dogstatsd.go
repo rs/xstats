@@ -1,3 +1,4 @@
+// Package dogstatsd implement Datadog extended StatsD protocol for github.com/rs/xstats
 package dogstatsd
 
 import (

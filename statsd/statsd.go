@@ -1,3 +1,4 @@
+// Package statsd implement the StatsD protocol for github.com/rs/xstats
 package statsd
 
 import (
