@@ -45,10 +45,10 @@ s.Timing("something", 5*time.Millisecond, "tag")
 Integration with [github.com/rs/xhandler](https://github.com/rs/xhandler):
 
 ```go
-var xh xhandler.Handler
+var xh xhandler.HandlerC
 
 // Here is your handler
-xh = xhandler.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+xh = xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
     // Get the xstats request's instance from the context. You can safely assume it will
     // be always there, if the handler is removed, xstats.FromContext will return a nop
     // instance.
@@ -69,7 +69,7 @@ xh = xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags, xh)
 
 // Root context
 ctx := context.Background()
-h := xhandler.CtxHandler(ctx, xh)
+h := xhandler.Handler(ctx, xh)
 http.Handle("/", h)
 
 if err := http.ListenAndServe(":8080", nil); err != nil {
