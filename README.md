@@ -69,7 +69,7 @@ xh = xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags, xh)
 
 // Root context
 ctx := context.Background()
-h := xhandler.Handler(ctx, xh)
+h := xhandler.New(ctx, xh)
 http.Handle("/", h)
 
 if err := http.ListenAndServe(":8080", nil); err != nil {
