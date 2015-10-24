@@ -26,8 +26,8 @@ var xstatsPool = sync.Pool{
 	},
 }
 
-// newContext returns a context with the given stats request client stored as value.
-func newContext(ctx context.Context, xs *xstats) context.Context {
+// NewContext returns a copy of the parent context and associates it with passed stats.
+func NewContext(ctx context.Context, xs XStater) context.Context {
 	return context.WithValue(ctx, xstatsKey, xs)
 }
 
@@ -57,7 +57,7 @@ func (h *Handler) ServeHTTPC(ctx context.Context, w http.ResponseWriter, r *http
 	xs, _ := xstatsPool.Get().(*xstats)
 	xs.s = h.s
 	xs.tags = append([]string{}, h.tags...)
-	ctx = newContext(ctx, xs)
+	ctx = NewContext(ctx, xs)
 	h.next.ServeHTTPC(ctx, w, r)
 	xs.s = nil
 	xs.tags = nil

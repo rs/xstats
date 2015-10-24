@@ -43,7 +43,7 @@ func TestContext(t *testing.T) {
 
 	ctx = context.Background()
 	xs := &xstats{}
-	ctx = newContext(ctx, xs)
+	ctx = NewContext(ctx, xs)
 	ctxs := FromContext(ctx)
 	assert.Equal(t, xs, ctxs)
 }
