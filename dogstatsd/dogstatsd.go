@@ -14,7 +14,7 @@ import (
 
 // Inspired by https://github.com/streadway/handy statsd package
 
-type client chan string
+type sender chan string
 
 // MaxPacketLen is the number of bytes filled before a packet is flushed before
 // the reporting interval.
@@ -27,29 +27,29 @@ var tick = time.Tick
 // interval or until the buffer exceeds a max packet size, whichever comes
 // first.
 func New(w io.Writer, reportInterval time.Duration) xstats.Sender {
-	c := make(chan string)
-	go fwd(w, reportInterval, c)
-	return client(c)
+	s := make(chan string)
+	go fwd(w, reportInterval, s)
+	return sender(s)
 }
 
-// Gauge implements xstats.Client interface
-func (c client) Gauge(stat string, value float64, tags ...string) {
-	c <- fmt.Sprintf("%s:%f|g%s\n", stat, value, t(tags))
+// Gauge implements xstats.Sender interface
+func (s sender) Gauge(stat string, value float64, tags ...string) {
+	s <- fmt.Sprintf("%s:%f|g%s\n", stat, value, t(tags))
 }
 
-// Count implements xstats.Client interface
-func (c client) Count(stat string, count float64, tags ...string) {
-	c <- fmt.Sprintf("%s:%f|c%s\n", stat, count, t(tags))
+// Count implements xstats.Sender interface
+func (s sender) Count(stat string, count float64, tags ...string) {
+	s <- fmt.Sprintf("%s:%f|c%s\n", stat, count, t(tags))
 }
 
-// Histogram implements xstats.Client interface
-func (c client) Histogram(stat string, value float64, tags ...string) {
-	c <- fmt.Sprintf("%s:%f|h%s\n", stat, value, t(tags))
+// Histogram implements xstats.Sender interface
+func (s sender) Histogram(stat string, value float64, tags ...string) {
+	s <- fmt.Sprintf("%s:%f|h%s\n", stat, value, t(tags))
 }
 
-// Timing implements xstats.Client interface
-func (c client) Timing(stat string, duration time.Duration, tags ...string) {
-	c <- fmt.Sprintf("%s:%f|ms%s\n", stat, duration.Seconds(), t(tags))
+// Timing implements xstats.Sender interface
+func (s sender) Timing(stat string, duration time.Duration, tags ...string) {
+	s <- fmt.Sprintf("%s:%f|ms%s\n", stat, duration.Seconds(), t(tags))
 }
 
 // Generate a DogStatsD tag suffix
