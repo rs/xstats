@@ -8,12 +8,13 @@ Package `xstats` is a generic client for service instrumentation.
 
 Talking about dependency injection, `xstats` comes with a [xhandler.Handler](https://github.com/rs/xhandler) integration so it can automatically inject the `xstats` client within the `net/context` of each request. Each request's `xstats` instance have its own tags storage ; This let you inject some per request contextual tags to be included with all observations sent within the lifespan of the request.
 
-`xstats` is pluggable and comes with integration for `StatsD` and `DogStatsD`, the [Datadog](http://datadoghq.com) augmented version of StatsD with support for tags. More integration may come later (PR welcome).
+`xstats` is pluggable and comes with integration for `expvar`, `StatsD` and `DogStatsD`, the [Datadog](http://datadoghq.com) augmented version of StatsD with support for tags. More integration may come later (PR welcome).
 
 ## Supported Clients
 
 - [StatsD](https://github.com/b/statsd_spec)
 - [DogStatsD](http://docs.datadoghq.com/guides/dogstatsd/#datagram-format)
+- [expvar](https://golang.org/pkg/expvar/)
 
 ## Install
 
