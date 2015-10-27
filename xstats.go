@@ -28,15 +28,26 @@ type XStater interface {
 	AddTags(tags ...string)
 }
 
-// New returns a new client with the provided backend client implementation.
+// New returns a new xstats client with the provided backend sender.
 func New(s Sender) XStater {
 	return &xstats{s: s}
 }
 
+// NewPrefix returns a new xstats client with the provided backend sender.
+// The prefix is prepended to all metric names.
+func NewPrefix(s Sender, prefix string) XStater {
+	return &xstats{
+		s:      s,
+		prefix: prefix,
+	}
+}
+
 type xstats struct {
 	s Sender
-	// Tags are appended to the tags provided to commands
+	// tags are appended to the tags provided to commands
 	tags []string
+	// prefix is prepended to all metric
+	prefix string
 }
 
 // AddTag implements XStats interface
@@ -47,23 +58,23 @@ func (xs *xstats) AddTags(tags ...string) {
 // Gauge implements XStats interface
 func (xs *xstats) Gauge(stat string, value float64, tags ...string) {
 	tags = append(tags, xs.tags...)
-	xs.s.Gauge(stat, value, tags...)
+	xs.s.Gauge(xs.prefix+stat, value, tags...)
 }
 
 // Count implements XStats interface
 func (xs *xstats) Count(stat string, count float64, tags ...string) {
 	tags = append(tags, xs.tags...)
-	xs.s.Count(stat, count, tags...)
+	xs.s.Count(xs.prefix+stat, count, tags...)
 }
 
 // Histogram implements XStats interface
 func (xs *xstats) Histogram(stat string, value float64, tags ...string) {
 	tags = append(tags, xs.tags...)
-	xs.s.Histogram(stat, value, tags...)
+	xs.s.Histogram(xs.prefix+stat, value, tags...)
 }
 
 // Timing implements XStats interface
 func (xs *xstats) Timing(stat string, duration time.Duration, tags ...string) {
 	tags = append(tags, xs.tags...)
-	xs.s.Timing(stat, duration, tags...)
+	xs.s.Timing(xs.prefix+stat, duration, tags...)
 }

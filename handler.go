@@ -11,9 +11,10 @@ import (
 // Handler injects a per request metrics client in the net/context which can be
 // retrived using xstats.FromContext(ctx)
 type Handler struct {
-	s    Sender
-	tags []string
-	next xhandler.HandlerC
+	s      Sender
+	tags   []string
+	prefix string
+	next   xhandler.HandlerC
 }
 
 type key int
@@ -52,14 +53,29 @@ func NewHandler(s Sender, tags []string, next xhandler.HandlerC) *Handler {
 	}
 }
 
+// NewHandlerPrefix creates a new handler with the provided metric client.
+// If some tags are provided, the will be added to all logged metrics.
+// If the prefix argument is provided, all produced metrics will have this
+// prefix prepended.
+func NewHandlerPrefix(s Sender, tags []string, prefix string, next xhandler.HandlerC) *Handler {
+	return &Handler{
+		s:      s,
+		tags:   tags,
+		next:   next,
+		prefix: prefix,
+	}
+}
+
 // ServeHTTPC implements xhandler.HandlerC interface
 func (h *Handler) ServeHTTPC(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	xs, _ := xstatsPool.Get().(*xstats)
 	xs.s = h.s
 	xs.tags = append([]string{}, h.tags...)
+	xs.prefix = h.prefix
 	ctx = NewContext(ctx, xs)
 	h.next.ServeHTTPC(ctx, w, r)
 	xs.s = nil
 	xs.tags = nil
+	xs.prefix = ""
 	xstatsPool.Put(xs)
 }

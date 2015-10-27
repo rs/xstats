@@ -54,6 +54,13 @@ func TestNew(t *testing.T) {
 	assert.True(t, ok)
 }
 
+func TestNewPrefix(t *testing.T) {
+	xs := NewPrefix(&fakeSender{}, "prefix.")
+	x, ok := xs.(*xstats)
+	assert.True(t, ok)
+	assert.Equal(t, "prefix.", x.prefix)
+}
+
 func TestAddTag(t *testing.T) {
 	xs := &xstats{s: &fakeSender{}}
 	xs.AddTags("foo")
@@ -62,32 +69,32 @@ func TestAddTag(t *testing.T) {
 
 func TestGauge(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s}
+	xs := &xstats{s: s, prefix: "p."}
 	xs.AddTags("foo")
 	xs.Gauge("bar", 1, "baz")
-	assert.Equal(t, cmd{"Gauge", "bar", 1, []string{"baz", "foo"}}, s.last)
+	assert.Equal(t, cmd{"Gauge", "p.bar", 1, []string{"baz", "foo"}}, s.last)
 }
 
 func TestCount(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s}
+	xs := &xstats{s: s, prefix: "p."}
 	xs.AddTags("foo")
 	xs.Count("bar", 1, "baz")
-	assert.Equal(t, cmd{"Count", "bar", 1, []string{"baz", "foo"}}, s.last)
+	assert.Equal(t, cmd{"Count", "p.bar", 1, []string{"baz", "foo"}}, s.last)
 }
 
 func TestHistogram(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s}
+	xs := &xstats{s: s, prefix: "p."}
 	xs.AddTags("foo")
 	xs.Histogram("bar", 1, "baz")
-	assert.Equal(t, cmd{"Histogram", "bar", 1, []string{"baz", "foo"}}, s.last)
+	assert.Equal(t, cmd{"Histogram", "p.bar", 1, []string{"baz", "foo"}}, s.last)
 }
 
 func TestTiming(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s}
+	xs := &xstats{s: s, prefix: "p."}
 	xs.AddTags("foo")
 	xs.Timing("bar", 1, "baz")
-	assert.Equal(t, cmd{"Timing", "bar", 1 / float64(time.Second), []string{"baz", "foo"}}, s.last)
+	assert.Equal(t, cmd{"Timing", "p.bar", 1 / float64(time.Second), []string{"baz", "foo"}}, s.last)
 }
