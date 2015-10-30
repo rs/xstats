@@ -13,18 +13,7 @@ import (
 )
 
 func ExampleNewHandler() {
-	var xh xhandler.HandlerC
-
-	// Here is your handler
-	xh = xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		// Get the xstats request's instance from the context. You can safely assume it will
-		// be always there, if the handler is removed, xstats.FromContext will return a nop
-		// instance.
-		m := xstats.FromContext(ctx)
-
-		// Count something
-		m.Count("requests", 1, "route:index")
-	})
+	c := xhandler.Chain{}
 
 	// Install the metric handler with dogstatsd backend client and some env tags
 	flushInterval := 5 * time.Second
@@ -33,11 +22,19 @@ func ExampleNewHandler() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	xh = xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags, xh)
+	c.UseC(xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags))
 
-	// Root context
-	ctx := context.Background()
-	h := xhandler.New(ctx, xh)
+	// Here is your handler
+	h := c.Handler(xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		// Get the xstats request's instance from the context. You can safely assume it will
+		// be always there, if the handler is removed, xstats.FromContext will return a nop
+		// instance.
+		m := xstats.FromContext(ctx)
+
+		// Count something
+		m.Count("requests", 1, "route:index")
+	}))
+
 	http.Handle("/", h)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {

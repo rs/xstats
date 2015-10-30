@@ -17,7 +17,7 @@ func TestHandler(t *testing.T) {
 		assert.Equal(t, s, xs.s)
 		assert.Equal(t, []string{"envtag"}, xs.tags)
 	})
-	h := NewHandler(s, []string{"envtag"}, n)
+	h := NewHandler(s, []string{"envtag"})(n)
 	h.ServeHTTPC(context.Background(), nil, nil)
 }
 
@@ -30,6 +30,6 @@ func TestHandlerPrefix(t *testing.T) {
 		assert.Equal(t, []string{"envtag"}, xs.tags)
 		assert.Equal(t, "prefix.", xs.prefix)
 	})
-	h := NewHandlerPrefix(s, []string{"envtag"}, "prefix.", n)
+	h := NewHandlerPrefix(s, []string{"envtag"}, "prefix.")(n)
 	h.ServeHTTPC(context.Background(), nil, nil)
 }
