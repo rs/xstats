@@ -57,24 +57,36 @@ func (xs *xstats) AddTags(tags ...string) {
 
 // Gauge implements XStats interface
 func (xs *xstats) Gauge(stat string, value float64, tags ...string) {
+	if xs.s == nil {
+		return
+	}
 	tags = append(tags, xs.tags...)
 	xs.s.Gauge(xs.prefix+stat, value, tags...)
 }
 
 // Count implements XStats interface
 func (xs *xstats) Count(stat string, count float64, tags ...string) {
+	if xs.s == nil {
+		return
+	}
 	tags = append(tags, xs.tags...)
 	xs.s.Count(xs.prefix+stat, count, tags...)
 }
 
 // Histogram implements XStats interface
 func (xs *xstats) Histogram(stat string, value float64, tags ...string) {
+	if xs.s == nil {
+		return
+	}
 	tags = append(tags, xs.tags...)
 	xs.s.Histogram(xs.prefix+stat, value, tags...)
 }
 
 // Timing implements XStats interface
 func (xs *xstats) Timing(stat string, duration time.Duration, tags ...string) {
+	if xs.s == nil {
+		return
+	}
 	tags = append(tags, xs.tags...)
 	xs.s.Timing(xs.prefix+stat, duration, tags...)
 }

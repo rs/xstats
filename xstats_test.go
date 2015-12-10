@@ -98,3 +98,11 @@ func TestTiming(t *testing.T) {
 	xs.Timing("bar", 1, "baz")
 	assert.Equal(t, cmd{"Timing", "p.bar", 1 / float64(time.Second), []string{"baz", "foo"}}, s.last)
 }
+
+func TestNilSender(t *testing.T) {
+	xs := &xstats{}
+	xs.Gauge("foo", 1)
+	xs.Count("foo", 1)
+	xs.Histogram("foo", 1)
+	xs.Timing("foo", 1)
+}
