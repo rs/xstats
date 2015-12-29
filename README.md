@@ -15,6 +15,7 @@ Talking about dependency injection, `xstats` comes with a [xhandler.Handler](htt
 - [StatsD](https://github.com/b/statsd_spec)
 - [DogStatsD](http://docs.datadoghq.com/guides/dogstatsd/#datagram-format)
 - [expvar](https://golang.org/pkg/expvar/)
+- [prometheus](https://github.com/prometheus/client_golang)
 
 ## Install
 
