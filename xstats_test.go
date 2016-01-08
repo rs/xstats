@@ -61,6 +61,21 @@ func TestNewPrefix(t *testing.T) {
 	assert.Equal(t, "prefix.", x.prefix)
 }
 
+func TestCopy(t *testing.T) {
+	xs := NewPrefix(&fakeSender{}, "prefix.").(*xstats)
+	xs.AddTags("foo")
+	xs2 := Copy(xs).(*xstats)
+	assert.Equal(t, xs.s, xs2.s)
+	assert.Equal(t, xs.tags, xs2.tags)
+	assert.Equal(t, xs.prefix, xs2.prefix)
+	xs2.AddTags("bar", "baz")
+	assert.Equal(t, []string{"foo"}, xs.tags)
+	assert.Equal(t, []string{"foo", "bar", "baz"}, xs2.tags)
+
+	assert.Equal(t, nop, Copy(nop))
+	assert.Equal(t, nop, Copy(nil))
+}
+
 func TestAddTag(t *testing.T) {
 	xs := &xstats{s: &fakeSender{}}
 	xs.AddTags("foo")

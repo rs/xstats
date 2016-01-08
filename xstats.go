@@ -28,6 +28,11 @@ type XStater interface {
 	AddTags(tags ...string)
 }
 
+// Copier is an interface to an xstater that support coping
+type Copier interface {
+	Copy() XStater
+}
+
 // New returns a new xstats client with the provided backend sender.
 func New(s Sender) XStater {
 	return &xstats{s: s}
@@ -42,12 +47,30 @@ func NewPrefix(s Sender, prefix string) XStater {
 	}
 }
 
+// Copy makes a copy of the given xstater if it implements the Copier
+// interface. Otherwise it returns a nop stats.
+func Copy(xs XStater) XStater {
+	if c, ok := xs.(Copier); ok {
+		return c.Copy()
+	}
+	return nop
+}
+
 type xstats struct {
 	s Sender
 	// tags are appended to the tags provided to commands
 	tags []string
 	// prefix is prepended to all metric
 	prefix string
+}
+
+// Copy makes a copy of the xstats client
+func (xs *xstats) Copy() XStater {
+	return &xstats{
+		s:      xs.s,
+		tags:   xs.tags,
+		prefix: xs.prefix,
+	}
 }
 
 // AddTag implements XStats interface
