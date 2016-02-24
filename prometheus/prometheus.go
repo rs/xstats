@@ -41,7 +41,7 @@ func NewHandler() *sender {
 // Gauge implements xstats.Sender interface
 //
 // Mark the tags as "key:value".
-func (s sender) Gauge(stat string, value float64, tags ...string) {
+func (s *sender) Gauge(stat string, value float64, tags ...string) {
 	s.RLock()
 	m, ok := s.gauges[stat]
 	s.RUnlock()
@@ -63,7 +63,7 @@ func (s sender) Gauge(stat string, value float64, tags ...string) {
 // Count implements xstats.Sender interface
 //
 // Mark the tags as "key:value".
-func (s sender) Count(stat string, count float64, tags ...string) {
+func (s *sender) Count(stat string, count float64, tags ...string) {
 	s.RLock()
 	m, ok := s.counters[stat]
 	s.RUnlock()
@@ -85,7 +85,7 @@ func (s sender) Count(stat string, count float64, tags ...string) {
 // Histogram implements xstats.Sender interface
 //
 // Mark the tags as "key:value".
-func (s sender) Histogram(stat string, value float64, tags ...string) {
+func (s *sender) Histogram(stat string, value float64, tags ...string) {
 	s.RLock()
 	m, ok := s.histograms[stat]
 	s.RUnlock()
@@ -107,7 +107,7 @@ func (s sender) Histogram(stat string, value float64, tags ...string) {
 // Timing implements xstats.Sender interface - simulates Timing with Gauge.
 //
 // Mark the tags as "key:value".
-func (s sender) Timing(stat string, duration time.Duration, tags ...string) {
+func (s *sender) Timing(stat string, duration time.Duration, tags ...string) {
 	s.Gauge(stat, float64(duration/time.Millisecond), tags...)
 }
 
