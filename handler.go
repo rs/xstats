@@ -1,11 +1,9 @@
 package xstats
 
 import (
+	"context"
 	"net/http"
 	"sync"
-
-	"github.com/rs/xhandler"
-	"golang.org/x/net/context"
 )
 
 // Handler injects a per request metrics client in the net/context which can be
@@ -44,7 +42,7 @@ func FromContext(ctx context.Context) XStater {
 
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
-func NewHandler(s Sender, tags []string) func(xhandler.HandlerC) xhandler.HandlerC {
+func NewHandler(s Sender, tags []string) func(http.Handler) http.Handler {
 	return NewHandlerPrefix(s, tags, "")
 }
 
@@ -52,15 +50,15 @@ func NewHandler(s Sender, tags []string) func(xhandler.HandlerC) xhandler.Handle
 // If some tags are provided, the will be added to all logged metrics.
 // If the prefix argument is provided, all produced metrics will have this
 // prefix prepended.
-func NewHandlerPrefix(s Sender, tags []string, prefix string) func(xhandler.HandlerC) xhandler.HandlerC {
-	return func(next xhandler.HandlerC) xhandler.HandlerC {
-		return xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func NewHandlerPrefix(s Sender, tags []string, prefix string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			xs, _ := xstatsPool.Get().(*xstats)
 			xs.s = s
 			xs.tags = append([]string{}, tags...)
 			xs.prefix = prefix
-			ctx = NewContext(ctx, xs)
-			next.ServeHTTPC(ctx, w, r)
+			ctx := NewContext(r.Context(), xs)
+			next.ServeHTTP(w, r.WithContext(ctx))
 			xs.s = nil
 			xs.tags = nil
 			xs.prefix = ""
