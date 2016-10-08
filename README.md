@@ -51,11 +51,11 @@ Integration with [github.com/rs/xhandler](https://github.com/rs/xhandler):
 var xh xhandler.HandlerC
 
 // Here is your handler
-xh = xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+xh = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     // Get the xstats request's instance from the context. You can safely assume it will
     // be always there, if the handler is removed, xstats.FromContext will return a nop
     // instance.
-    m := xstats.FromContext(ctx)
+    m := xstats.FromRequest(r)
 
     // Count something
     m.Count("requests", 1, "route:index")

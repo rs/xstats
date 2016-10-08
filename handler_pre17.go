@@ -1,4 +1,4 @@
-// +build go1.7
+// +build !go1.7
 
 package xstats
 
@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"sync"
 
-	"context"
+	"github.com/rs/xhandler"
+	"golang.org/x/net/context"
 )
 
 // Handler injects a per request metrics client in the net/context which can be
@@ -43,18 +44,9 @@ func FromContext(ctx context.Context) XStater {
 	return nop
 }
 
-// FromRequest gets the xstats client in the request's context.
-// This is a shortcut for xstats.FromContext(r.Context())
-func FromRequest(r *http.Request) XStater {
-	if r == nil {
-		return nop
-	}
-	return FromContext(r.Context())
-}
-
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
-func NewHandler(s Sender, tags []string) func(http.Handler) http.Handler {
+func NewHandler(s Sender, tags []string) func(xhandler.HandlerC) xhandler.HandlerC {
 	return NewHandlerPrefix(s, tags, "")
 }
 
@@ -62,15 +54,15 @@ func NewHandler(s Sender, tags []string) func(http.Handler) http.Handler {
 // If some tags are provided, the will be added to all logged metrics.
 // If the prefix argument is provided, all produced metrics will have this
 // prefix prepended.
-func NewHandlerPrefix(s Sender, tags []string, prefix string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewHandlerPrefix(s Sender, tags []string, prefix string) func(xhandler.HandlerC) xhandler.HandlerC {
+	return func(next xhandler.HandlerC) xhandler.HandlerC {
+		return xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			xs, _ := xstatsPool.Get().(*xstats)
 			xs.s = s
 			xs.tags = append([]string{}, tags...)
 			xs.prefix = prefix
-			ctx := NewContext(r.Context(), xs)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			ctx = NewContext(ctx, xs)
+			next.ServeHTTPC(ctx, w, r)
 			xs.s = nil
 			xs.tags = nil
 			xs.prefix = ""
