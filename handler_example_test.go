@@ -1,3 +1,5 @@
+// +build go1.7
+
 package xstats_test
 
 import (
@@ -9,7 +11,6 @@ import (
 	"github.com/rs/xhandler"
 	"github.com/rs/xstats"
 	"github.com/rs/xstats/dogstatsd"
-	"golang.org/x/net/context"
 )
 
 func ExampleNewHandler() {
@@ -22,14 +23,14 @@ func ExampleNewHandler() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.UseC(xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags))
+	c.Use(xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags))
 
 	// Here is your handler
-	h := c.Handler(xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h := c.HandlerH(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get the xstats request's instance from the context. You can safely assume it will
 		// be always there, if the handler is removed, xstats.FromContext will return a nop
 		// instance.
-		m := xstats.FromContext(ctx)
+		m := xstats.FromRequest(r)
 
 		// Count something
 		m.Count("requests", 1, "route:index")
