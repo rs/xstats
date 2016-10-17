@@ -42,6 +42,15 @@ func FromContext(ctx context.Context) XStater {
 	return nop
 }
 
+// FromRequest gets the stater in the request's context.
+// This is a shortcut for xstats.FromContext(r.Context())
+func FromRequest(r *http.Request) Xstater {
+	if r == nil {
+		return nop
+	}
+	return FromContext(r.Context())
+}
+
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
 func NewHandler(s Sender, tags []string) func(xhandler.HandlerC) xhandler.HandlerC {
