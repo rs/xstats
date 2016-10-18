@@ -11,13 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-	prometheus.EnableCollectChecks(true)
-}
 
 func get(w io.Writer, h http.Handler, mark byte) {
 	rr := httptest.NewRecorder()
