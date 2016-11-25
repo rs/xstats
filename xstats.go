@@ -23,9 +23,13 @@ import "time"
 type XStater interface {
 	Sender
 
-	// AddTag adds a tag to the request client, this tag will be sent with all subsequent
-	// stats queries.
+	// AddTag adds a tag to the request client, this tag will be sent with all
+	// subsequent stats queries.
 	AddTags(tags ...string)
+
+	// GetTags return the tags associated with the xstater, all the tags that
+	// will be sent along with all the stats queries.
+	GetTags() []string
 }
 
 // Copier is an interface to an xstater that support coping
@@ -76,6 +80,11 @@ func (xs *xstats) Copy() XStater {
 // AddTag implements XStats interface
 func (xs *xstats) AddTags(tags ...string) {
 	xs.tags = append(xs.tags, tags...)
+}
+
+// AddTag implements XStats interface
+func (xs *xstats) GetTags() []string {
+	return xs.tags
 }
 
 // Gauge implements XStats interface

@@ -7,8 +7,13 @@ type nopS struct {
 
 var nop = &nopS{}
 
-// AddTag implements XStats interface
+// AddTags implements XStats interface
 func (rc *nopS) AddTags(tags ...string) {
+}
+
+// GetTags implements XStats interface
+func (rc *nopS) GetTags() []string {
+	return nil
 }
 
 // Gauge implements XStats interface
