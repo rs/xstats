@@ -77,7 +77,7 @@ func TestTiming(t *testing.T) {
 	c.Timing("metric2", 2*time.Second, "tag1", "tag2")
 	wait(buf)
 
-	assert.Equal(t, "metric1:1.000000|ms\nmetric2:2.000000|ms\n", buf.String())
+	assert.Equal(t, "metric1:1000.000000|ms\nmetric2:2000.000000|ms\n", buf.String())
 }
 
 type errWriter struct{}
