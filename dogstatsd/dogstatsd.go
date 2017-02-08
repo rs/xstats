@@ -49,7 +49,7 @@ func (s sender) Histogram(stat string, value float64, tags ...string) {
 
 // Timing implements xstats.Sender interface
 func (s sender) Timing(stat string, duration time.Duration, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|ms%s\n", stat, duration.Seconds(), t(tags))
+	s <- fmt.Sprintf("%s:%f|ms%s\n", stat, duration.Seconds()*1000, t(tags))
 }
 
 // Generate a DogStatsD tag suffix
