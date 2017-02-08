@@ -48,7 +48,7 @@ func (s sender) Histogram(stat string, value float64, tags ...string) {
 
 // Timing implements xstats.Sender interface
 func (s sender) Timing(stat string, duration time.Duration, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|ms\n", stat, duration.Seconds())
+	s <- fmt.Sprintf("%s:%f|ms\n", stat, duration.Seconds()*1000)
 }
 
 func fwd(w io.Writer, reportInterval time.Duration, c <-chan string) {
