@@ -28,6 +28,6 @@ func (rc *nopS) Count(stat string, count float64, tags ...string) {
 func (rc *nopS) Histogram(stat string, value float64, tags ...string) {
 }
 
-// Timing implements xstats interface
+// Timing implements XStats interface
 func (rc *nopS) Timing(stat string, duration time.Duration, tags ...string) {
 }
