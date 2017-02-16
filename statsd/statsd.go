@@ -13,7 +13,11 @@ import (
 
 // Inspired by https://github.com/streadway/handy statsd package
 
-type sender chan string
+type sender struct {
+	c    chan string
+	quit chan struct{}
+	done chan struct{}
+}
 
 // MaxPacketLen is the number of bytes filled before a packet is flushed before
 // the reporting interval.
@@ -26,44 +30,60 @@ var tick = time.Tick
 // interval or until the buffer exceeds a max packet size, whichever comes
 // first. Tags are ignored.
 func New(w io.Writer, reportInterval time.Duration) xstats.Sender {
-	s := make(chan string)
-	go fwd(w, reportInterval, s)
-	return sender(s)
+	s := &sender{
+		c:    make(chan string),
+		quit: make(chan struct{}),
+		done: make(chan struct{}),
+	}
+	go s.fwd(w, reportInterval)
+	return s
 }
 
 // Gauge implements xstats.Sender interface
-func (s sender) Gauge(stat string, value float64, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|g\n", stat, value)
+func (s *sender) Gauge(stat string, value float64, tags ...string) {
+	s.c <- fmt.Sprintf("%s:%f|g\n", stat, value)
 }
 
 // Count implements xstats.Sender interface
-func (s sender) Count(stat string, count float64, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|c\n", stat, count)
+func (s *sender) Count(stat string, count float64, tags ...string) {
+	s.c <- fmt.Sprintf("%s:%f|c\n", stat, count)
 }
 
 // Histogram implements xstats.Sender interface
-func (s sender) Histogram(stat string, value float64, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|h\n", stat, value)
+func (s *sender) Histogram(stat string, value float64, tags ...string) {
+	s.c <- fmt.Sprintf("%s:%f|h\n", stat, value)
 }
 
 // Timing implements xstats.Sender interface
-func (s sender) Timing(stat string, duration time.Duration, tags ...string) {
-	s <- fmt.Sprintf("%s:%f|ms\n", stat, duration.Seconds()*1000)
+func (s *sender) Timing(stat string, duration time.Duration, tags ...string) {
+	s.c <- fmt.Sprintf("%s:%f|ms\n", stat, duration.Seconds()*1000)
 }
 
-func fwd(w io.Writer, reportInterval time.Duration, c <-chan string) {
+// Close implements xstats.Sender interface
+func (s *sender) Close() {
+	close(s.quit)
+	<-s.done
+	close(s.c)
+}
+
+func (s *sender) fwd(w io.Writer, reportInterval time.Duration) {
+	defer close(s.done)
+
 	buf := &bytes.Buffer{}
 	tick := tick(reportInterval)
 	for {
 		select {
-		case s := <-c:
-			buf.Write([]byte(s))
+		case m := <-s.c:
+			buf.Write([]byte(m))
 			if buf.Len() > maxPacketLen {
 				flush(w, buf)
 			}
 
 		case <-tick:
 			flush(w, buf)
+		case <-s.quit:
+			flush(w, buf)
+			return
 		}
 	}
 }
