@@ -17,7 +17,10 @@
 // More integration may come later (PR welcome).
 package xstats // import "github.com/rs/xstats"
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 // XStater is a wrapper around a Sender to inject env tags within all observations.
 type XStater interface {
@@ -37,18 +40,24 @@ type Copier interface {
 	Copy() XStater
 }
 
+var xstatsPool = sync.Pool{
+	New: func() interface{} {
+		return &xstats{}
+	},
+}
+
 // New returns a new xstats client with the provided backend sender.
 func New(s Sender) XStater {
-	return &xstats{s: s}
+	return NewPrefix(s, "")
 }
 
 // NewPrefix returns a new xstats client with the provided backend sender.
 // The prefix is prepended to all metric names.
 func NewPrefix(s Sender, prefix string) XStater {
-	return &xstats{
-		s:      s,
-		prefix: prefix,
-	}
+	xs := xstatsPool.Get().(*xstats)
+	xs.s = s
+	xs.prefix = prefix
+	return xs
 }
 
 // Copy makes a copy of the given xstater if it implements the Copier
@@ -70,16 +79,27 @@ type xstats struct {
 
 // Copy makes a copy of the xstats client
 func (xs *xstats) Copy() XStater {
-	return &xstats{
-		s:      xs.s,
-		tags:   xs.tags,
-		prefix: xs.prefix,
-	}
+	xs2 := NewPrefix(xs.s, xs.prefix).(*xstats)
+	xs2.tags = xs.tags
+	return xs2
+}
+
+// Close returns the xstats to the sync.Pool.
+func (xs *xstats) Close() error {
+	xs.s = nil
+	xs.tags = nil
+	xs.prefix = ""
+	xstatsPool.Put(xs)
+	return nil
 }
 
 // AddTag implements XStats interface
 func (xs *xstats) AddTags(tags ...string) {
-	xs.tags = append(xs.tags, tags...)
+	if xs.tags == nil {
+		xs.tags = tags
+	} else {
+		xs.tags = append(xs.tags, tags...)
+	}
 }
 
 // AddTag implements XStats interface
