@@ -4,7 +4,6 @@ package xstats
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/rs/xhandler"
 	"golang.org/x/net/context"
@@ -21,12 +20,6 @@ type Handler struct {
 type key int
 
 const xstatsKey key = 0
-
-var xstatsPool = sync.Pool{
-	New: func() interface{} {
-		return &xstats{}
-	},
-}
 
 // NewContext returns a copy of the parent context and associates it with passed stats.
 func NewContext(ctx context.Context, xs XStater) context.Context {
@@ -57,16 +50,11 @@ func NewHandler(s Sender, tags []string) func(xhandler.HandlerC) xhandler.Handle
 func NewHandlerPrefix(s Sender, tags []string, prefix string) func(xhandler.HandlerC) xhandler.HandlerC {
 	return func(next xhandler.HandlerC) xhandler.HandlerC {
 		return xhandler.HandlerFuncC(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-			xs, _ := xstatsPool.Get().(*xstats)
-			xs.s = s
-			xs.tags = append([]string{}, tags...)
-			xs.prefix = prefix
+			xs := NewPrefix(s, prefix).(*xstats)
+			xs.AddTags(tags...)
 			ctx = NewContext(ctx, xs)
 			next.ServeHTTPC(ctx, w, r)
-			xs.s = nil
-			xs.tags = nil
-			xs.prefix = ""
-			xstatsPool.Put(xs)
+			xs.Close()
 		})
 	}
 }
