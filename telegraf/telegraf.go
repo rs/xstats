@@ -61,10 +61,12 @@ func (s *sender) Timing(stat string, duration time.Duration, tags ...string) {
 }
 
 // Close implements xstats.Sender interface
-func (s *sender) Close() {
+func (s *sender) Close() error {
 	close(s.quit)
 	<-s.done
 	close(s.c)
+
+	return nil
 }
 
 // Generate a telegraf tag suffix
