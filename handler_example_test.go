@@ -18,7 +18,7 @@ func ExampleNewHandler() {
 
 	// Install the metric handler with dogstatsd backend client and some env tags
 	flushInterval := 5 * time.Second
-	tags := []string{"role:my-service"}
+	tags := map[string]string{"role": "my-service"}
 	statsdWriter, err := net.Dial("udp", "127.0.0.1:8126")
 	if err != nil {
 		log.Fatal(err)

@@ -47,7 +47,7 @@ func FromRequest(r *http.Request) XStater {
 
 // NewHandler creates a new handler with the provided metric client.
 // If some tags are provided, the will be added to all logged metrics.
-func NewHandler(s Sender, tags []string) func(http.Handler) http.Handler {
+func NewHandler(s Sender, tags map[string]string) func(http.Handler) http.Handler {
 	return NewHandlerPrefix(s, tags, "")
 }
 
@@ -55,11 +55,15 @@ func NewHandler(s Sender, tags []string) func(http.Handler) http.Handler {
 // If some tags are provided, the will be added to all logged metrics.
 // If the prefix argument is provided, all produced metrics will have this
 // prefix prepended.
-func NewHandlerPrefix(s Sender, tags []string, prefix string) func(http.Handler) http.Handler {
+func NewHandlerPrefix(s Sender, tags map[string]string, prefix string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			xs := NewPrefix(s, prefix).(*xstats)
-			xs.AddTags(tags...)
+			if tags != nil {
+				for k, v := range tags {
+					xs.AddTag(k, v)
+				}
+			}
 			ctx := NewContext(r.Context(), xs)
 			next.ServeHTTP(w, r.WithContext(ctx))
 			xs.Close()
