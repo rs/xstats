@@ -6,7 +6,7 @@ import (
 )
 
 func TestNop(t *testing.T) {
-	nop.AddTags("tag")
+	nop.AddTags("tag:value")
 	nop.Gauge("metric", 1)
 	nop.Count("metric", 1)
 	nop.Histogram("metric", 1)

@@ -11,8 +11,12 @@ var nop = &nopS{}
 func (rc *nopS) AddTags(tags ...string) {
 }
 
+// AddTag implements XStats interface
+func (rc *nopS) AddTag(key, value string) {
+}
+
 // GetTags implements XStats interface
-func (rc *nopS) GetTags() []string {
+func (rc *nopS) GetTags() map[string]string {
 	return nil
 }
 

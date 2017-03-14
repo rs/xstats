@@ -63,55 +63,61 @@ func TestNewPrefix(t *testing.T) {
 
 func TestCopy(t *testing.T) {
 	xs := NewPrefix(&fakeSender{}, "prefix.").(*xstats)
-	xs.AddTags("foo")
+	xs.AddTags("k1:v1")
 	xs2 := Copy(xs).(*xstats)
 	assert.Equal(t, xs.s, xs2.s)
 	assert.Equal(t, xs.tags, xs2.tags)
 	assert.Equal(t, xs.prefix, xs2.prefix)
-	xs2.AddTags("bar", "baz")
-	assert.Equal(t, []string{"foo"}, xs.tags)
-	assert.Equal(t, []string{"foo", "bar", "baz"}, xs2.tags)
+	xs2.AddTags("k2:v2", "k3:v3")
+	assert.Equal(t, map[string]string{"k1": "v1"}, xs.tags)
+	assert.Equal(t, map[string]string{"k1": "v1", "k2": "v2", "k3": "v3"}, xs2.tags)
 
 	assert.Equal(t, nop, Copy(nop))
 	assert.Equal(t, nop, Copy(nil))
 }
 
 func TestAddTag(t *testing.T) {
-	xs := &xstats{s: &fakeSender{}}
-	xs.AddTags("foo")
-	assert.Equal(t, []string{"foo"}, xs.tags)
+	xs := &xstats{s: &fakeSender{}, tags: make(map[string]string)}
+	xs.AddTag("k1", "v1")
+	assert.Equal(t, map[string]string{"k1": "v1"}, xs.tags)
+}
+
+func TestAddTags(t *testing.T) {
+	xs := &xstats{s: &fakeSender{}, tags: make(map[string]string)}
+	xs.AddTags("k1:v1")
+	assert.Equal(t, map[string]string{"k1": "v1"}, xs.tags)
 }
 
 func TestGauge(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s, prefix: "p."}
-	xs.AddTags("foo")
-	xs.Gauge("bar", 1, "baz")
-	assert.Equal(t, cmd{"Gauge", "p.bar", 1, []string{"baz", "foo"}}, s.last)
+	xs := &xstats{s: s, prefix: "p.", tags: make(map[string]string)}
+	xs.AddTags("k1:v1")
+	xs.Gauge("bar", 1, "k2:v2")
+	assert.Equal(t, cmd{"Gauge", "p.bar", 1, []string{"k1:v1", "k2:v2"}}, s.last)
 }
 
 func TestCount(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s, prefix: "p."}
-	xs.AddTags("foo")
-	xs.Count("bar", 1, "baz")
-	assert.Equal(t, cmd{"Count", "p.bar", 1, []string{"baz", "foo"}}, s.last)
+	xs := &xstats{s: s, prefix: "p.", tags: make(map[string]string)}
+	xs.AddTags("k1:v1")
+	xs.Count("bar", 1, "k2:v2")
+	assert.Equal(t, cmd{"Count", "p.bar", 1, []string{"k1:v1", "k2:v2"}}, s.last)
 }
 
 func TestHistogram(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s, prefix: "p."}
-	xs.AddTags("foo")
-	xs.Histogram("bar", 1, "baz")
-	assert.Equal(t, cmd{"Histogram", "p.bar", 1, []string{"baz", "foo"}}, s.last)
+	xs := &xstats{s: s, prefix: "p.", tags: make(map[string]string)}
+	xs.AddTags("k1:v1")
+	xs.Histogram("bar", 1, "k2:v2")
+	assert.Equal(t, cmd{"Histogram", "p.bar", 1, []string{"k1:v1", "k2:v2"}}, s.last)
 }
 
 func TestTiming(t *testing.T) {
 	s := &fakeSender{}
-	xs := &xstats{s: s, prefix: "p."}
-	xs.AddTags("foo")
-	xs.Timing("bar", 1, "baz")
-	assert.Equal(t, cmd{"Timing", "p.bar", 1 / float64(time.Second), []string{"baz", "foo"}}, s.last)
+	xs := &xstats{s: s, prefix: "p.", tags: make(map[string]string)}
+	xs.AddTags("k1:v1")
+	xs.Timing("bar", 1, "k2:v2")
+	assert.Equal(t, cmd{"Timing", "p.bar", 1 / float64(time.Second), []string{"k1:v1", "k2:v2"}}, s.last)
 }
 
 func TestNilSender(t *testing.T) {
