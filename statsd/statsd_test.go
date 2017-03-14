@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"runtime"
 	"testing"
 	"time"
 
@@ -16,10 +15,8 @@ var tickC = make(chan time.Time)
 var fakeTick = func(time.Duration) <-chan time.Time { return tickC }
 
 func wait(buf *bytes.Buffer) {
-	runtime.Gosched()
-	tickC <- time.Now()
-	runtime.Gosched()
 	for i := 0; i < 10 && buf.Len() == 0; i++ {
+		tickC <- time.Now()
 		time.Sleep(10 * time.Millisecond)
 	}
 }
