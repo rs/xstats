@@ -22,7 +22,7 @@ type sender struct {
 
 // MaxPacketLen is the number of bytes filled before a packet is flushed before
 // the reporting interval.
-const maxPacketLen = 2 ^ 15
+const maxPacketLen = 1 << 15
 
 var tick = time.Tick
 
