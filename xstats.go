@@ -18,8 +18,13 @@
 package xstats // import "github.com/rs/xstats"
 
 import (
+	"strings"
 	"sync"
 	"time"
+)
+
+const (
+	defaultDelimiter = "."
 )
 
 // XStater is a wrapper around a Sender to inject env tags within all observations.
@@ -30,14 +35,19 @@ type XStater interface {
 	// subsequent stats queries.
 	AddTags(tags ...string)
 
-	// GetTags return the tags associated with the xstater, all the tags that
+	// GetTags returns the tags associated with the XStater, all the tags that
 	// will be sent along with all the stats queries.
 	GetTags() []string
 }
 
-// Copier is an interface to an xstater that support coping
+// Copier is an interface to an XStater that supports coping
 type Copier interface {
 	Copy() XStater
+}
+
+// Scoper is an interface to an XStater, that supports scoping
+type Scoper interface {
+	Scope(scope string, scopes ...string) XStater
 }
 
 var xstatsPool = sync.Pool{
@@ -54,17 +64,37 @@ func New(s Sender) XStater {
 // NewPrefix returns a new xstats client with the provided backend sender.
 // The prefix is prepended to all metric names.
 func NewPrefix(s Sender, prefix string) XStater {
+	return NewScoping(s, "", prefix)
+}
+
+// NewScoping returns a new xstats client with the provided backend sender.
+// The delimiter is used to delimit scopes. Initial scopes can be provided.
+func NewScoping(s Sender, delimiter string, scopes ...string) XStater {
 	xs := xstatsPool.Get().(*xstats)
 	xs.s = s
-	xs.prefix = prefix
+	if len(scopes) > 0 {
+		xs.prefix = strings.Join(scopes, delimiter) + delimiter
+	} else {
+		xs.prefix = ""
+	}
+	xs.delimiter = delimiter
 	return xs
 }
 
-// Copy makes a copy of the given xstater if it implements the Copier
+// Copy makes a copy of the given XStater if it implements the Copier
 // interface. Otherwise it returns a nop stats.
 func Copy(xs XStater) XStater {
 	if c, ok := xs.(Copier); ok {
 		return c.Copy()
+	}
+	return nop
+}
+
+// Scope makes a scoped copy of the given XStater if it implements the Scoper
+// interface. Otherwise it returns a nop stats.
+func Scope(xs XStater, scope string, scopes ...string) XStater {
+	if c, ok := xs.(Scoper); ok {
+		return c.Scope(scope, scopes...)
 	}
 	return nop
 }
@@ -75,11 +105,26 @@ type xstats struct {
 	tags []string
 	// prefix is prepended to all metric
 	prefix string
+	// delimiter is used to delimit scopes
+	delimiter string
 }
 
-// Copy makes a copy of the xstats client
+// Copy implements the Copier interface
 func (xs *xstats) Copy() XStater {
-	xs2 := NewPrefix(xs.s, xs.prefix).(*xstats)
+	xs2 := NewScoping(xs.s, xs.delimiter, xs.prefix).(*xstats)
+	xs2.tags = xs.tags
+	return xs2
+}
+
+// Scope implements Scoper interface
+func (xs *xstats) Scope(scope string, scopes ...string) XStater {
+	scs := make([]string, 0, 2+len(scopes))
+	if xs.prefix != "" {
+		scs = append(scs, strings.TrimRight(xs.prefix, xs.delimiter))
+	}
+	scs = append(scs, scope)
+	scs = append(scs, scopes...)
+	xs2 := NewScoping(xs.s, xs.delimiter, scs...).(*xstats)
 	xs2.tags = xs.tags
 	return xs2
 }
@@ -89,11 +134,12 @@ func (xs *xstats) Close() error {
 	xs.s = nil
 	xs.tags = nil
 	xs.prefix = ""
+	xs.delimiter = ""
 	xstatsPool.Put(xs)
 	return nil
 }
 
-// AddTag implements XStats interface
+// AddTag implements XStater interface
 func (xs *xstats) AddTags(tags ...string) {
 	if xs.tags == nil {
 		xs.tags = tags
@@ -102,12 +148,12 @@ func (xs *xstats) AddTags(tags ...string) {
 	}
 }
 
-// AddTag implements XStats interface
+// AddTag implements XStater interface
 func (xs *xstats) GetTags() []string {
 	return xs.tags
 }
 
-// Gauge implements XStats interface
+// Gauge implements XStater interface
 func (xs *xstats) Gauge(stat string, value float64, tags ...string) {
 	if xs.s == nil {
 		return
@@ -116,7 +162,7 @@ func (xs *xstats) Gauge(stat string, value float64, tags ...string) {
 	xs.s.Gauge(xs.prefix+stat, value, tags...)
 }
 
-// Count implements XStats interface
+// Count implements XStater interface
 func (xs *xstats) Count(stat string, count float64, tags ...string) {
 	if xs.s == nil {
 		return
@@ -125,7 +171,7 @@ func (xs *xstats) Count(stat string, count float64, tags ...string) {
 	xs.s.Count(xs.prefix+stat, count, tags...)
 }
 
-// Histogram implements XStats interface
+// Histogram implements XStater interface
 func (xs *xstats) Histogram(stat string, value float64, tags ...string) {
 	if xs.s == nil {
 		return
@@ -134,7 +180,7 @@ func (xs *xstats) Histogram(stat string, value float64, tags ...string) {
 	xs.s.Histogram(xs.prefix+stat, value, tags...)
 }
 
-// Timing implements XStats interface
+// Timing implements XStater interface
 func (xs *xstats) Timing(stat string, duration time.Duration, tags ...string) {
 	if xs.s == nil {
 		return

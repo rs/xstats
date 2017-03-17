@@ -61,6 +61,18 @@ func TestNewPrefix(t *testing.T) {
 	assert.Equal(t, "prefix.", x.prefix)
 }
 
+func TestNewScoping(t *testing.T) {
+	xs := NewScoping(&fakeSender{}, "/")
+	x, ok := xs.(*xstats)
+	assert.True(t, ok)
+	assert.Equal(t, "", x.prefix)
+
+	xs = NewScoping(&fakeSender{}, "/", "prefix", "infix", "suffix")
+	x, ok = xs.(*xstats)
+	assert.True(t, ok)
+	assert.Equal(t, "prefix/infix/suffix/", x.prefix)
+}
+
 func TestCopy(t *testing.T) {
 	xs := NewPrefix(&fakeSender{}, "prefix.").(*xstats)
 	xs.AddTags("foo")
@@ -74,6 +86,30 @@ func TestCopy(t *testing.T) {
 
 	assert.Equal(t, nop, Copy(nop))
 	assert.Equal(t, nop, Copy(nil))
+}
+
+func TestScope(t *testing.T) {
+	xs := NewScoping(&fakeSender{}, ".").(*xstats)
+	xs.AddTags("foo")
+
+	xs2 := Scope(xs, "prefix").(*xstats)
+	assert.Equal(t, xs.s, xs2.s)
+	assert.Equal(t, xs.tags, xs2.tags)
+	assert.Equal(t, "prefix.", xs2.prefix)
+
+	xs3 := Scope(xs2, "infix", "suffix").(*xstats)
+	assert.Equal(t, xs2.s, xs3.s)
+	assert.Equal(t, xs2.tags, xs3.tags)
+	assert.Equal(t, "prefix.infix.suffix.", xs3.prefix)
+
+	xs2.AddTags("bar", "baz")
+	xs3.AddTags("blegga")
+	assert.Equal(t, []string{"foo"}, xs.tags)
+	assert.Equal(t, []string{"foo", "bar", "baz"}, xs2.tags)
+	assert.Equal(t, []string{"foo", "blegga"}, xs3.tags)
+
+	assert.Equal(t, nop, Scope(nop, "prefix"))
+	assert.Equal(t, nop, Scope(nil, "prefix"))
 }
 
 func TestAddTag(t *testing.T) {
