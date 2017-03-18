@@ -1,6 +1,7 @@
 package xstats
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -10,7 +11,11 @@ import (
 
 type fakeSender struct {
 	last cmd
-	err  error
+}
+
+type fakeSenderCloser struct {
+	fakeSender
+	err error
 }
 
 type cmd struct {
@@ -34,6 +39,11 @@ func (s *fakeSender) Histogram(stat string, value float64, tags ...string) {
 
 func (s *fakeSender) Timing(stat string, duration time.Duration, tags ...string) {
 	s.last = cmd{"Timing", stat, duration.Seconds(), tags}
+}
+
+func (s *fakeSenderCloser) Close() error {
+	s.fakeSender.last = cmd{name: "Close"}
+	return s.err
 }
 
 func TestContext(t *testing.T) {
@@ -150,10 +160,25 @@ func TestTiming(t *testing.T) {
 	assert.Equal(t, cmd{"Timing", "p.bar", 1 / float64(time.Second), []string{"baz", "foo"}}, s.last)
 }
 
+func TestClose(t *testing.T) {
+	s := &fakeSender{}
+	xs := &xstats{s: s}
+	assert.Nil(t, Close(xs))
+
+	err := errors.New("foo")
+	sc := &fakeSenderCloser{err: err}
+	xs.s = sc
+	assert.Equal(t, err, Close(xs))
+	assert.Equal(t, cmd{name: "Close"}, sc.last)
+
+	assert.Nil(t, Close(nop))
+}
+
 func TestNilSender(t *testing.T) {
 	xs := &xstats{}
 	xs.Gauge("foo", 1)
 	xs.Count("foo", 1)
 	xs.Histogram("foo", 1)
 	xs.Timing("foo", 1)
+	assert.Nil(t, xs.Close())
 }
