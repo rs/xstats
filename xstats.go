@@ -141,17 +141,14 @@ func (xs *xstats) Scope(scope string, scopes ...string) XStater {
 	return xs2
 }
 
-// Close closes the underlying Sender, if necessary, and returns the xstats to
-// the sync.Pool.
+// Close returns the xstats to the sync.Pool
 func (xs *xstats) Close() error {
-	// capture error, but return to pool either way
-	err := CloseSender(xs.s)
 	xs.s = nil
 	xs.tags = nil
 	xs.prefix = ""
 	xs.delimiter = ""
 	xstatsPool.Put(xs)
-	return err
+	return nil
 }
 
 // AddTag implements XStater interface
