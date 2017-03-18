@@ -118,8 +118,11 @@ func (xs *xstats) Copy() XStater {
 
 // Scope implements Scoper interface
 func (xs *xstats) Scope(scope string, scopes ...string) XStater {
-	scs := make([]string, 0, 2+len(scopes))
-	if xs.prefix != "" {
+	var scs []string
+	if xs.prefix == "" {
+		scs = make([]string, 0, 1+len(scopes))
+	} else {
+		scs = make([]string, 0, 2+len(scopes))
 		scs = append(scs, strings.TrimRight(xs.prefix, xs.delimiter))
 	}
 	scs = append(scs, scope)
