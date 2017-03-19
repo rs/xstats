@@ -12,7 +12,7 @@ type fakeSender struct {
 	last cmd
 }
 
-type fakeSenderCloser struct {
+type fakeSendCloser struct {
 	fakeSender
 	err error
 }
@@ -40,7 +40,7 @@ func (s *fakeSender) Timing(stat string, duration time.Duration, tags ...string)
 	s.last = cmd{"Timing", stat, duration.Seconds(), tags}
 }
 
-func (s *fakeSenderCloser) Close() error {
+func (s *fakeSendCloser) Close() error {
 	s.fakeSender.last = cmd{name: "Close"}
 	return s.err
 }

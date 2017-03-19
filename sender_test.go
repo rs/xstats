@@ -10,8 +10,8 @@ import (
 
 func TestMultiSender(t *testing.T) {
 	fs1 := &fakeSender{}
-	fs2 := &fakeSenderCloser{err: errors.New("foo")}
-	fs3 := &fakeSenderCloser{err: errors.New("bar")}
+	fs2 := &fakeSendCloser{err: errors.New("foo")}
+	fs3 := &fakeSendCloser{err: errors.New("bar")}
 	m := MultiSender{fs1, fs2, fs3}
 
 	m.Count("foo", 1, "bar", "baz")
