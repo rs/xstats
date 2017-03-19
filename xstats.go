@@ -18,6 +18,7 @@
 package xstats // import "github.com/rs/xstats"
 
 import (
+	"io"
 	"strings"
 	"sync"
 	"time"
@@ -99,6 +100,14 @@ func Scope(xs XStater, scope string, scopes ...string) XStater {
 	return nop
 }
 
+// Close will call Close() on any xstats.XStater that implements io.Closer
+func Close(xs XStater) error {
+	if c, ok := xs.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
+
 type xstats struct {
 	s Sender
 	// tags are appended to the tags provided to commands
@@ -132,7 +141,7 @@ func (xs *xstats) Scope(scope string, scopes ...string) XStater {
 	return xs2
 }
 
-// Close returns the xstats to the sync.Pool.
+// Close returns the xstats to the sync.Pool
 func (xs *xstats) Close() error {
 	xs.s = nil
 	xs.tags = nil

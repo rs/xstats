@@ -10,7 +10,11 @@ import (
 
 type fakeSender struct {
 	last cmd
-	err  error
+}
+
+type fakeSendCloser struct {
+	fakeSender
+	err error
 }
 
 type cmd struct {
@@ -34,6 +38,11 @@ func (s *fakeSender) Histogram(stat string, value float64, tags ...string) {
 
 func (s *fakeSender) Timing(stat string, duration time.Duration, tags ...string) {
 	s.last = cmd{"Timing", stat, duration.Seconds(), tags}
+}
+
+func (s *fakeSendCloser) Close() error {
+	s.fakeSender.last = cmd{name: "Close"}
+	return s.err
 }
 
 func TestContext(t *testing.T) {

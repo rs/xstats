@@ -1,6 +1,9 @@
 package xstats
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 // Sender define an interface to a stats system like statsd or datadog to send
 // service's metrics.
@@ -24,34 +27,55 @@ type Sender interface {
 	Timing(stat string, value time.Duration, tags ...string)
 }
 
+// CloseSender will call Close() on any xstats.Sender that implements io.Closer
+func CloseSender(s Sender) error {
+	if c, ok := s.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
+
 // MultiSender lets you assign more than one sender to xstats in order to
 // multicast observeration to different systems.
 type MultiSender []Sender
 
-// Gauge implements xstats.Sender interface
+// Gauge implements the xstats.Sender interface
 func (s MultiSender) Gauge(stat string, value float64, tags ...string) {
 	for _, ss := range s {
 		ss.Gauge(stat, value, tags...)
 	}
 }
 
-// Count implements xstats.Sender interface
+// Count implements the xstats.Sender interface
 func (s MultiSender) Count(stat string, count float64, tags ...string) {
 	for _, ss := range s {
 		ss.Count(stat, count, tags...)
 	}
 }
 
-// Histogram implements xstats.Sender interface
+// Histogram implements the xstats.Sender interface
 func (s MultiSender) Histogram(stat string, value float64, tags ...string) {
 	for _, ss := range s {
 		ss.Histogram(stat, value, tags...)
 	}
 }
 
-// Timing implements xstats.Sender interface
+// Timing implements the xstats.Sender interface
 func (s MultiSender) Timing(stat string, duration time.Duration, tags ...string) {
 	for _, ss := range s {
 		ss.Timing(stat, duration, tags...)
 	}
+}
+
+// Close implements the io.Closer interface
+func (s MultiSender) Close() error {
+	var firstErr error
+	// attempt to close all senders, return first error encountered
+	for _, ss := range s {
+		err := CloseSender(ss)
+		if err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
 }
