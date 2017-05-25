@@ -18,12 +18,13 @@ func ExampleNewHandler() {
 
 	// Install the metric handler with dogstatsd backend client and some env tags
 	flushInterval := 5 * time.Second
+	maxPacketLen := 8192
 	tags := []string{"role:my-service"}
 	statsdWriter, err := net.Dial("udp", "127.0.0.1:8126")
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.Use(xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval), tags))
+	c.Use(xstats.NewHandler(dogstatsd.New(statsdWriter, flushInterval, maxPacketLen), tags))
 
 	// Here is your handler
 	h := c.HandlerH(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
