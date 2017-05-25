@@ -19,6 +19,8 @@ type sender struct {
 	done chan struct{}
 }
 
+// defaultMaxPacketLen is the default number of bytes filled before a packet is
+// flushed before the reporting interval.
 const defaultMaxPacketLen = 1 << 15
 
 var tick = time.Tick
