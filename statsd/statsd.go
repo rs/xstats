@@ -13,6 +13,8 @@ import (
 
 // Inspired by https://github.com/streadway/handy statsd package
 
+const defaultMaxPacketLen = 1 << 15
+
 type sender struct {
 	c    chan string
 	quit chan struct{}
@@ -21,11 +23,19 @@ type sender struct {
 
 var tick = time.Tick
 
-// New creates a statsd sender that emit observations in the statsd
+// New creates a statsd sender that emits observations in the statsd
+// protocol to the passed writer. Observations are buffered for the report
+// interval or until the buffer exceeds a max packet size, whichever comes
+// first.
+func New(w io.Writer, reportInterval time.Duration) xstats.Sender {
+	return NewMaxPacket(w, reportInterval, defaultMaxPacketLen)
+}
+
+// NewMaxPacket creates a statsd sender that emits observations in the statsd
 // protocol to the passed writer. Observations are buffered for the report
 // interval or until the buffer exceeds the max packet size, whichever comes
 // first. Tags are ignored.
-func New(w io.Writer, reportInterval time.Duration, maxPacketLen int) xstats.Sender {
+func NewMaxPacket(w io.Writer, reportInterval time.Duration, maxPacketLen int) xstats.Sender {
 	s := &sender{
 		c:    make(chan string),
 		quit: make(chan struct{}),

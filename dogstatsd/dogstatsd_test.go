@@ -26,7 +26,7 @@ func TestCounter(t *testing.T) {
 	defer func() { tick = time.Tick }()
 
 	buf := &bytes.Buffer{}
-	c := New(buf, time.Second, 1<<15)
+	c := New(buf, time.Second)
 
 	c.Count("metric1", 1, "tag1")
 	c.Count("metric2", 2, "tag1", "tag2")
@@ -40,7 +40,7 @@ func TestGauge(t *testing.T) {
 	defer func() { tick = time.Tick }()
 
 	buf := &bytes.Buffer{}
-	c := New(buf, time.Second, 1<<15)
+	c := New(buf, time.Second)
 
 	c.Gauge("metric1", 1, "tag1")
 	c.Gauge("metric2", -2.0, "tag1", "tag2")
@@ -54,7 +54,7 @@ func TestHistogram(t *testing.T) {
 	defer func() { tick = time.Tick }()
 
 	buf := &bytes.Buffer{}
-	c := New(buf, time.Second, 1<<15)
+	c := New(buf, time.Second)
 
 	c.Histogram("metric1", 1, "tag1")
 	c.Histogram("metric2", 2, "tag1", "tag2")
@@ -68,7 +68,7 @@ func TestTiming(t *testing.T) {
 	defer func() { tick = time.Tick }()
 
 	buf := &bytes.Buffer{}
-	c := New(buf, time.Second, 1<<15)
+	c := New(buf, time.Second)
 
 	c.Timing("metric1", time.Second, "tag1")
 	c.Timing("metric2", 2*time.Second, "tag1", "tag2")
@@ -79,7 +79,7 @@ func TestTiming(t *testing.T) {
 
 func TestMaxPacketLen(t *testing.T) {
 	buf := &bytes.Buffer{}
-	c := New(buf, time.Hour, 32)
+	c := NewMaxPacket(buf, time.Hour, 32)
 
 	c.Count("metric1", 1.0) // len("metric1:1.000000|c\n") == 19
 	c.Count("met2", 1.0)    // len == 16
@@ -113,7 +113,7 @@ func TestInvalidBuffer(t *testing.T) {
 	log.SetOutput(buf)
 	defer func() { log.SetOutput(os.Stderr) }()
 
-	c := New(&errWriter{}, time.Second, 1<<15)
+	c := New(&errWriter{}, time.Second)
 
 	c.Count("metric", 1)
 	wait(buf)

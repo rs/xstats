@@ -15,7 +15,7 @@ func ExampleMultiSender() {
 
 	// Create the stats sender
 	statsdWriter, _ := net.Dial("udp", "127.0.0.1:8126")
-	s2 := dogstatsd.New(statsdWriter, 5*time.Second, 8192)
+	s2 := dogstatsd.New(statsdWriter, 5*time.Second)
 
 	// Create a xstats with a sender composed of the previous two.
 	// You may also create a NewHandler() the same way.
