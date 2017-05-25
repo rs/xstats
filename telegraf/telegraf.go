@@ -14,13 +14,13 @@ import (
 
 // Inspired by https://github.com/streadway/handy statsd package
 
-const defaultMaxPacketLen = 1 << 15
-
 type sender struct {
 	c    chan string
 	quit chan struct{}
 	done chan struct{}
 }
+
+const defaultMaxPacketLen = 1 << 15
 
 var tick = time.Tick
 
