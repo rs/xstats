@@ -77,6 +77,28 @@ func TestTiming(t *testing.T) {
 	assert.Equal(t, "metric1,tag1:1.000000|ms\nmetric2,tag1,tag2:2.000000|ms\n", buf.String())
 }
 
+func TestMaxPacketLen(t *testing.T) {
+	buf := &bytes.Buffer{}
+	c := NewMaxPacket(buf, time.Hour, 32)
+
+	c.Count("metric1", 1.0) // len("metric1,:1.000000|c\n") == 20
+	c.Count("mt2", 1.0)     // len == 16
+
+	for i := 0; i < 10 && buf.Len() == 0; i++ {
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	assert.Equal(t, "metric1,:1.000000|c\n", buf.String())
+	buf.Reset()
+
+	c.Count("mt3", 1.0)
+	for i := 0; i < 10 && buf.Len() == 0; i++ {
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	assert.Equal(t, "mt2,:1.000000|c\nmt3,:1.000000|c\n", buf.String())
+}
+
 type errWriter struct{}
 
 func (w errWriter) Write(p []byte) (n int, err error) {

@@ -20,23 +20,31 @@ type sender struct {
 	done chan struct{}
 }
 
-// MaxPacketLen is the number of bytes filled before a packet is flushed before
-// the reporting interval.
-const maxPacketLen = 1 << 15
+// defaultMaxPacketLen is the default number of bytes filled before a packet is
+// flushed before the reporting interval.
+const defaultMaxPacketLen = 1 << 15
 
 var tick = time.Tick
 
-// New creates a datadog statsd sender that emit observations in the statsd
+// New creates a datadog statsd sender that emits observations in the statsd
 // protocol to the passed writer. Observations are buffered for the report
 // interval or until the buffer exceeds a max packet size, whichever comes
 // first.
 func New(w io.Writer, reportInterval time.Duration) xstats.Sender {
+	return NewMaxPacket(w, reportInterval, defaultMaxPacketLen)
+}
+
+// NewMaxPacket creates a datadog statsd sender that emits observations in the
+// statsd protocol to the passed writer. Observations are buffered for the
+// report interval or until the buffer exceeds the max packet size, whichever
+// comes first.
+func NewMaxPacket(w io.Writer, reportInterval time.Duration, maxPacketLen int) xstats.Sender {
 	s := &sender{
 		c:    make(chan string),
 		quit: make(chan struct{}),
 		done: make(chan struct{}),
 	}
-	go s.fwd(w, reportInterval)
+	go s.fwd(w, reportInterval, maxPacketLen)
 	return s
 }
 
@@ -78,7 +86,7 @@ func t(tags []string) string {
 	return t
 }
 
-func (s *sender) fwd(w io.Writer, reportInterval time.Duration) {
+func (s *sender) fwd(w io.Writer, reportInterval time.Duration, maxPacketLen int) {
 	defer close(s.done)
 
 	buf := &bytes.Buffer{}
@@ -86,8 +94,14 @@ func (s *sender) fwd(w io.Writer, reportInterval time.Duration) {
 	for {
 		select {
 		case m := <-s.c:
+			newLen := buf.Len() + len(m)
+			if newLen > maxPacketLen {
+				flush(w, buf)
+			}
+
 			buf.Write([]byte(m))
-			if buf.Len() > maxPacketLen {
+
+			if newLen == maxPacketLen {
 				flush(w, buf)
 			}
 
