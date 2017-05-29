@@ -17,6 +17,7 @@ Talking about dependency injection, `xstats` comes with a [xhandler.Handler](htt
 - [expvar](https://golang.org/pkg/expvar/)
 - [prometheus](https://github.com/prometheus/client_golang)
 - [telegraf](https://influxdata.com/blog/getting-started-with-sending-statsd-metrics-to-telegraf-influxdb)
+- [mock](https://github.com/stretchr/testify)
 
 ## Install
 
@@ -77,6 +78,17 @@ http.Handle("/", h)
 
 if err := http.ListenAndServe(":8080", nil); err != nil {
     log.Fatal(err)
+}
+```
+
+## Testing
+```go
+func TestFunc(t *testing.T) {
+    m := mock.New()
+    s := xstats.New(m)
+    m.On("Timing", "something", 5*time.Millisecond, "tag")
+    s.Timing("something", 5*time.Millisecond, "tag")
+    s.AssertExpectations(t)
 }
 ```
 
