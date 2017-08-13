@@ -1,6 +1,7 @@
 package xstats
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -61,6 +62,30 @@ func TestNew(t *testing.T) {
 	xs := New(&fakeSender{})
 	_, ok := xs.(*xstats)
 	assert.True(t, ok)
+}
+
+func TestNewPoolingDisable(t *testing.T) {
+	originalValue := DisablePooling
+	originalPool := xstatsPool
+	defer func(value bool, pool *sync.Pool) {
+		DisablePooling = value
+		xstatsPool = pool
+	}(originalValue, originalPool)
+	DisablePooling = true
+	xstatsPool = &sync.Pool{
+		New: func() interface{} {
+			assert.Fail(t, "pool used while disabled")
+			return nil
+		},
+	}
+	xs := New(&fakeSender{})
+	x, ok := xs.(*xstats)
+	assert.True(t, ok)
+	x.AddTags("test:true")
+	x.Close()
+	// Ensure that state is maintained when pooling is disabled.
+	tags := x.GetTags()
+	assert.Contains(t, tags, "test:true")
 }
 
 func TestNewPrefix(t *testing.T) {

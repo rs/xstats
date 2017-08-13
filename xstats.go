@@ -28,6 +28,15 @@ const (
 	defaultDelimiter = "."
 )
 
+var (
+	// DisablePooling will disable the use of sync.Pool fo resource management when true.
+	// This allows for XStater instances to persist beyond the scope of an HTTP request
+	// handler. However, using this option puts a greater pressure on GC and changes
+	// the memory usage patterns of the library. Use only if there is a requirement
+	// for persistent stater references.
+	DisablePooling = false
+)
+
 // XStater is a wrapper around a Sender to inject env tags within all observations.
 type XStater interface {
 	Sender
@@ -51,7 +60,7 @@ type Scoper interface {
 	Scope(scope string, scopes ...string) XStater
 }
 
-var xstatsPool = sync.Pool{
+var xstatsPool = &sync.Pool{
 	New: func() interface{} {
 		return &xstats{}
 	},
@@ -71,7 +80,12 @@ func NewPrefix(s Sender, prefix string) XStater {
 // NewScoping returns a new xstats client with the provided backend sender.
 // The delimiter is used to delimit scopes. Initial scopes can be provided.
 func NewScoping(s Sender, delimiter string, scopes ...string) XStater {
-	xs := xstatsPool.Get().(*xstats)
+	var xs *xstats
+	if DisablePooling {
+		xs = &xstats{}
+	} else {
+		xs = xstatsPool.Get().(*xstats)
+	}
 	xs.s = s
 	if len(scopes) > 0 {
 		xs.prefix = strings.Join(scopes, delimiter) + delimiter
@@ -143,11 +157,13 @@ func (xs *xstats) Scope(scope string, scopes ...string) XStater {
 
 // Close returns the xstats to the sync.Pool
 func (xs *xstats) Close() error {
-	xs.s = nil
-	xs.tags = nil
-	xs.prefix = ""
-	xs.delimiter = ""
-	xstatsPool.Put(xs)
+	if !DisablePooling {
+		xs.s = nil
+		xs.tags = nil
+		xs.prefix = ""
+		xs.delimiter = ""
+		xstatsPool.Put(xs)
+	}
 	return nil
 }
 
