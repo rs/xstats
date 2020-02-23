@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/promhttp"
 	"github.com/rs/xstats"
 )
 
@@ -31,7 +32,7 @@ func New(addr string) xstats.Sender {
 // NewHandler creates a prometheus publisher - a http.Handler and an xstats.Sender.
 func NewHandler() *sender {
 	return &sender{
-		Handler:    prometheus.Handler(),
+		Handler:    promhttp.Handler(),
 		counters:   make(map[string]*prometheus.CounterVec),
 		gauges:     make(map[string]*prometheus.GaugeVec),
 		histograms: make(map[string]*prometheus.HistogramVec),
