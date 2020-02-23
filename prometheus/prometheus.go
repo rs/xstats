@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/xstats"
 )
 
