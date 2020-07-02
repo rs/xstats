@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/rs/xstats"
-	"github.com/rs/xstats/dogstatsd"
+	"github.com/deciphernow/xstats"
+	"github.com/deciphernow/xstats/dogstatsd"
 )
 
 func ExampleNew() {

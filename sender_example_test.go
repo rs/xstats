@@ -4,9 +4,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/rs/xstats"
-	"github.com/rs/xstats/dogstatsd"
-	"github.com/rs/xstats/expvar"
+	"github.com/deciphernow/xstats"
+	"github.com/deciphernow/xstats/dogstatsd"
+	"github.com/deciphernow/xstats/expvar"
 )
 
 func ExampleMultiSender() {

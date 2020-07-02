@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deciphernow/xstats"
+	"github.com/deciphernow/xstats/dogstatsd"
 	"github.com/rs/xhandler"
-	"github.com/rs/xstats"
-	"github.com/rs/xstats/dogstatsd"
 )
 
 func ExampleNewHandler() {

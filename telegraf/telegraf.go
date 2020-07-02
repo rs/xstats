@@ -1,4 +1,4 @@
-// Package telegrafstatsd implement telegraf extended StatsD protocol for github.com/rs/xstats
+// Package telegrafstatsd implement telegraf extended StatsD protocol for github.com/deciphernow/xstats
 package telegraf
 
 import (
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xstats"
+	"github.com/deciphernow/xstats"
 )
 
 // Inspired by https://github.com/streadway/handy statsd package

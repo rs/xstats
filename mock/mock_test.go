@@ -2,9 +2,10 @@ package mock
 
 import (
 	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/rs/xstats"
 	"time"
+
+	"github.com/deciphernow/xstats"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {

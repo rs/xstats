@@ -15,7 +15,7 @@
 // xstats is pluggable and comes with integration for StatsD and DogStatsD,
 // the Datadog (http://datadoghq.com) augmented version of StatsD with support for tags.
 // More integration may come later (PR welcome).
-package xstats // import "github.com/rs/xstats"
+package xstats // import "github.com/deciphernow/xstats"
 
 import (
 	"io"

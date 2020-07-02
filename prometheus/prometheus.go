@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deciphernow/xstats"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/xstats"
 )
 
 type sender struct {

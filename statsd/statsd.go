@@ -1,4 +1,4 @@
-// Package statsd implement the StatsD protocol for github.com/rs/xstats
+// Package statsd implement the StatsD protocol for github.com/deciphernow/xstats
 package statsd
 
 import (
@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/rs/xstats"
+	"github.com/deciphernow/xstats"
 )
 
 // Inspired by https://github.com/streadway/handy statsd package
