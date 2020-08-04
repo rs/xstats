@@ -97,21 +97,21 @@ func NewScoping(s Sender, delimiter string, scopes ...string) XStater {
 }
 
 // Copy makes a copy of the given XStater if it implements the Copier
-// interface. Otherwise it returns a nop stats.
+// interface. Otherwise it returns a Nop stats.
 func Copy(xs XStater) XStater {
 	if c, ok := xs.(Copier); ok {
 		return c.Copy()
 	}
-	return nop
+	return Nop
 }
 
 // Scope makes a scoped copy of the given XStater if it implements the Scoper
-// interface. Otherwise it returns a nop stats.
+// interface. Otherwise it returns a Nop stats.
 func Scope(xs XStater, scope string, scopes ...string) XStater {
 	if c, ok := xs.(Scoper); ok {
 		return c.Scope(scope, scopes...)
 	}
-	return nop
+	return Nop
 }
 
 // Close will call Close() on any xstats.XStater that implements io.Closer

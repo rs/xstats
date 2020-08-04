@@ -54,7 +54,7 @@ var xh xhandler.HandlerC
 // Here is your handler
 xh = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     // Get the xstats request's instance from the context. You can safely assume it will
-    // be always there, if the handler is removed, xstats.FromContext will return a nop
+    // be always there, if the handler is removed, xstats.FromContext will return a Nop
     // instance.
     m := xstats.FromRequest(r)
 

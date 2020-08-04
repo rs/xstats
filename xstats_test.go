@@ -49,7 +49,7 @@ func (s *fakeSendCloser) Close() error {
 func TestContext(t *testing.T) {
 	ctx := context.Background()
 	s := FromContext(ctx)
-	assert.Equal(t, nop, s)
+	assert.Equal(t, Nop, s)
 
 	ctx = context.Background()
 	xs := &xstats{}
@@ -118,8 +118,8 @@ func TestCopy(t *testing.T) {
 	assert.Equal(t, []string{"foo"}, xs.tags)
 	assert.Equal(t, []string{"foo", "bar", "baz"}, xs2.tags)
 
-	assert.Equal(t, nop, Copy(nop))
-	assert.Equal(t, nop, Copy(nil))
+	assert.Equal(t, Nop, Copy(Nop))
+	assert.Equal(t, Nop, Copy(nil))
 }
 
 func TestScope(t *testing.T) {
@@ -142,8 +142,8 @@ func TestScope(t *testing.T) {
 	assert.Equal(t, []string{"foo", "bar", "baz"}, xs2.tags)
 	assert.Equal(t, []string{"foo", "blegga"}, xs3.tags)
 
-	assert.Equal(t, nop, Scope(nop, "prefix"))
-	assert.Equal(t, nop, Scope(nil, "prefix"))
+	assert.Equal(t, Nop, Scope(Nop, "prefix"))
+	assert.Equal(t, Nop, Scope(nil, "prefix"))
 }
 
 func TestAddTag(t *testing.T) {
