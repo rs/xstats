@@ -5,7 +5,7 @@ import "time"
 type nopS struct {
 }
 
-var nop = &nopS{}
+var Nop = &nopS{}
 
 // AddTags implements XStats interface
 func (rc *nopS) AddTags(tags ...string) {

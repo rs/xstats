@@ -27,14 +27,14 @@ func NewContext(ctx context.Context, xs XStater) context.Context {
 }
 
 // FromContext retreives the request's xstats client from a given context if any.
-// If no xstats is embeded in the context, a nop instance is returned so you can
+// If no xstats is embeded in the context, a Nop instance is returned so you can
 // use it safely without having to test for it's presence.
 func FromContext(ctx context.Context) XStater {
 	rc, ok := ctx.Value(xstatsKey).(XStater)
 	if ok {
 		return rc
 	}
-	return nop
+	return Nop
 }
 
 // NewHandler creates a new handler with the provided metric client.
